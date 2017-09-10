@@ -1,8 +1,8 @@
 # Makefile for CS 2150 pre-lab 8
 # This Makefile shows how to link assembly with C/C++
 
-# Defines the C++ compiler we'll be using
-CXX	= g++ -m32
+# Defines the python compiler we'll be using
+CXX	= python
 
 # Defines the flags we'll be passing to the C++ compiler
 CXXFLAGS	= -Wall -g
