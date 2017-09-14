@@ -4,9 +4,10 @@
 import textwrap
 
 # create data structures
-# in the form {"key" : ["value", "R/L"]}
-variableDefinitions = {"key" : ["value", "R"], "key2": ["value2", "L"]}
-trueVariables = ["E", "D"]
+# in the form {"variable" : ["value", "-R/-L"]}
+variableDefinitions = {}
+# in the form {"variable" : "true/false"}
+facts = {}
 rules = []
 
 def expertSystem():
@@ -19,7 +20,11 @@ def expertSystem():
 		commandList = commandString.split(' ')
 		# call correct function
 		if(commandList[0] == "Teach"):
-			teachCommand()
+			if((commandList[1] == "-R") or (commandList[1] == "-L")):
+				teachVariableDefinition(commandList)
+			if(commandList[1] in variableDefinitions.keys() and (commandList[3] == "true" or commandList[3] == "false")):
+				teachTruth(commandList)
+
 		if(commandList[0] == "List"):
 			listCommand()
 		if(commandList[0] == "Learn"):
@@ -32,26 +37,45 @@ def expertSystem():
 		# print(commandList)
 		
 
-def teachCommand():
-	print("in teachCommand")
+def teachVariableDefinition(commandList):
+	# get information
+	argument = commandList[1]
+	variable = commandList[2]
+	value = ' '.join(commandList[4::])
+	# add information to variableDefinitions
+	variableDefinitions[variable] = [value, argument]
+
+def teachTruth(commandList):
+	# get information
+	variable = commandList[1]
+	truth = commandList[3]
+	typeOfVariable = variableDefinitions[variable][1]
+	# this command can only be used with root variables
+	if(typeOfVariable == "-R"):
+		facts[variable] = truth
+	else:
+		print("Error: Cannot set a learned variable directly")
+
+
 
 def listCommand():
 
 	print("Root Variables:")
 	for variable, definition in variableDefinitions.items():
-		if(definition[1] == "R"):
-			print(' '*5 + variable + ' = "' + definition[0] + '"')
+		if(definition[1] == "-R"):
+			print(' '*5 + variable + ' = ' + definition[0])
 	print()
 
 	print("Learned Variables:")
 	for variable, definition in variableDefinitions.items():
-		if(definition[1] == "L"):
-			print(' '*5 + variable + ' = "' + definition[0] + '"')
+		if(definition[1] == "-L"):
+			print(' '*5 + variable + ' = ' + definition[0])
 	print()
 
 	print("Facts:")
-	for fact in trueVariables:
-		print(' '*5 + fact)
+	for variable, fact in facts.items():
+		if(fact == "true"):
+			print(' '*5 + variable)
 	print()
 
 	print("Rules:")
