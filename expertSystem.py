@@ -4,7 +4,7 @@
 import textwrap
 
 # create data structures
-# in the form {"variable" : ["value", "-R/-L"]}
+# in the form {"variable" : ["value", "-R/-L", "true/false"]}
 variableDefinitions = {}
 # in the form {"variable" : "true/false"}
 facts = {}
@@ -24,27 +24,33 @@ def expertSystem():
 				teachVariableDefinition(commandList)
 			if(commandList[1] in variableDefinitions.keys() and (commandList[3] == "true" or commandList[3] == "false")):
 				teachTruth(commandList)
+			if((commandList[2]) == "->"):
+				teachNewRule(commandList)
 
 		if(commandList[0] == "List"):
 			listCommand()
+
 		if(commandList[0] == "Learn"):
 			learnCommand()
+
 		if(commandList[0] == "Query"):
 			queryCommand()
+
 		if(commandList[0] == "Why"):
 			whyCommand()
 
 		# print(commandList)
 		
-
+# Teach <ARG> <VAR> = <STRING>
 def teachVariableDefinition(commandList):
 	# get information
 	argument = commandList[1]
 	variable = commandList[2]
 	value = ' '.join(commandList[4::])
 	# add information to variableDefinitions
-	variableDefinitions[variable] = [value, argument]
+	variableDefinitions[variable] = [value, argument, "false"]
 
+# Teach <ROOT VAR> = <BOOL>
 def teachTruth(commandList):
 	# get information
 	variable = commandList[1]
@@ -53,23 +59,42 @@ def teachTruth(commandList):
 	# this command can only be used with root variables
 	if(typeOfVariable == "-R"):
 		facts[variable] = truth
+		variableDefinitions[variable][2] = truth
+		# reset all learned variables to the value of false
+		for variable, information in variableDefinitions.items():
+			if(information[1] == "-L"):
+				information[2] = 'false'
+				facts[variable] = 'false'
+
 	else:
 		print("Error: Cannot set a learned variable directly")
 
+# Teach <EXP> -> <VAR>
+def teachNewRule(commandList):
+	# check to make sure that all variables here have already been defined via previous Teach commands
+	for letter in commandList[1]:
+		# ignore command if variables in <EXP> are not defined 
+		if( (letter not in "!&|()") and letter not in variableDefinitions.keys() ):
+			return
+	# ignore command if variable <VAR> is not defined
+	if( commandList[3] not in variableDefinitions.keys() ):
+		return 
 
+	# add to rules 
+	rules.append(' '.join(commandList[1:]))
 
 def listCommand():
 
 	print("Root Variables:")
-	for variable, definition in variableDefinitions.items():
-		if(definition[1] == "-R"):
-			print(' '*5 + variable + ' = ' + definition[0])
+	for variable, information in variableDefinitions.items():
+		if(information[1] == "-R"):
+			print(' '*5 + variable + ' = ' + information[0])
 	print()
 
 	print("Learned Variables:")
-	for variable, definition in variableDefinitions.items():
-		if(definition[1] == "-L"):
-			print(' '*5 + variable + ' = ' + definition[0])
+	for variable, information in variableDefinitions.items():
+		if(information[1] == "-L"):
+			print(' '*5 + variable + ' = ' + information[0])
 	print()
 
 	print("Facts:")
@@ -87,9 +112,11 @@ def listCommand():
 def learnCommand():
 	print("in learnCommand")
 
+# Query <EXP>
 def queryCommand():
 	print("in queryCommand")
 
+# Why <EXP>
 def whyCommand():
 	print("in whyCommand")
 
