@@ -1,0 +1,6 @@
+Teach -R S = “Sam likes Ice”
+Teach -R V = “Today is Sunday”
+Teach S -> V
+Teach S = true
+Teach V = true
+Learn

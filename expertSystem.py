@@ -107,80 +107,139 @@ def listCommand():
     for rule in rules:
         print(" "*5 + rule)
     print()
+# find the index of corresponding ")"
+def findclose(q,s):
+    d=1
+    for i in range(q+1,len(s),1):
+        if s[i]=="(":
+            d+=1
+        else:
+            if s[i]==")":
+                d-=1
+        if d==0: return i
+    return -1
 # To evaluate expression to give true or false, @ means true, # means false
 def evaluate(s):
 
     # get rid of ()
     q=s.find("(")
-    qq=s.find(")")
+    qq=findclose(q,s)
     while (q!=-1):
         flag2= evaluate(s[q+1:qq])
         if flag2:
-            s.replace(s[q:qq+1],"@")
+            s=s.replace(s[q:qq+1],"@")
         else:
-            s.replace(s[q:qq+1],"#")
+            s=s.replace(s[q:qq+1],"#")
+        q=s.find("(")
+        qq=findclose(q,s)
+
+
     p=s.find("!")
     while p!=-1:
-        for i in xrange(p+1,len(s),1):
+        for i in range(p+1,len(s),1):
             if (s[i] in "!&|()"):
                 i=i-1
                 break
-        subs=s[p:i]
-        if facts[subs]=="false" or subs=="#":
-            s.replace(s[p:i+1],"@")
+        subs=s[p+1:i+1]
+        if subs=="#":
+            s=s.replace(s[p:i+1],"@")
         else:
-            s.replace(s[p:i+1],"#")
+            if subs=="@":
+                s=s.replace(s[p:i+1],"#")
+            else:
+                if facts[subs]=="false":
+                    s=s.replace(s[p:i+1],"@")
+                else:
+                    s=s.replace(s[p:i+1],"#")
         p=s.find("!")
+    print(s)
     # get rid of &
     p=s.find("&")
     while (p!=-1):
-        for i in xrange(p+1,len(s),1):
+
+        for i in range(p+1,len(s),1):
             if (s[i] in "!&|()"):
                 i=i-1
                 break
-        for j in xrange(p-1,-1,-1):
+        for j in range(p-1,-1,-1):
             if (s[j] in "!&|()"):
                 j=j+1
                 break
-        subs=s[p:i]
+        subs=s[p+1:i+1]
         subs2=s[j:p]
-        if (facts[subs]=="true" or subs=="@" ) and (facts[subs2]=="true" or subs2=="@" ):
-            s.replace(s[j:i+1],"@")
+        if subs=="@":
+            a=True
         else:
-            s.replace(s[j:i+1],"#")
+            if subs=="#":
+                a=False
+            else:
+                a=facts[subs]
+        if subs2=="@":
+            b=True
+        else:
+            if subs2=="#":
+                b=False
+            else:
+                b=facts[subs2]
+
+        if (a and b):
+            s=s.replace(s[j:i+1],"@")
+        else:
+            s=s.replace(s[j:i+1],"#")
         p=s.find("&")
     # get rid of |
     p=s.find("|")
     while (p!=-1):
-        for i in xrange(p+1,len(s),1):
-            print(p+1)
-            print(len(s))
+        i=p+1
+        for i in range(p+1,len(s),1):
+
             if (s[i] in "!&|()"):
                 i=i-1
                 break
-        for j in xrange(p-1,-1,-1):
+        for j in range(p-1,-1,-1):
             if (s[j] in "!&|()"):
                 j=j+1
                 break
-        subs=s[p:i]
+        subs=s[p+1:i+1]
         subs2=s[j:p]
-        if facts[subs]=="true" or subs=="@" or facts[subs2]=="true" or subs2=="@":
-            s.replace(s[j:i+1],"@")
+        if subs=="@":
+            a=True
         else:
-            s.replace(s[j:i+1],"#")
+            if subs=="#":
+                a=False
+            else:
+                a=facts[subs]
+        if subs2=="@":
+            b=True
+        else:
+            if subs2=="#":
+                b=False
+            else:
+                b=facts[subs2]
+
+        if (a or b):
+            s=s.replace(s[j:i+1],"@")
+        else:
+            s=s.replace(s[j:i+1],"#")
         p=s.find("|")
+        print(s)
     if s=="@":
-        return true
+        return True
     else:
-        return false
+        return False
 
 def learnCommand():
 
 
 
     print("in learnCommand")
-    print(evaluate("S&V"))
-    #print(evaluate("S|V&!(V|S)"))
+    #print(evaluate("S&V"))
+    #print(evaluate("!V&S"))
+    #print(evaluate("!V&(S|V)"))
+    #print(evaluate("S|!(V|S)"))
+    #print(evaluate("(S|V)|!(V|S)"))
+    #print(evaluate("((S|V))"))
+    print(evaluate("((S|V)|!(V|S))"))
 
 # Query <EXP>
 def queryCommand():
