@@ -2,6 +2,7 @@
 # Monica Kuo (mdk6jd); De Ouyang (do5xb)
 
 import textwrap
+import pdb
 
 # create data structures
 # in the form {"variable" : ["value", "-R/-L", "true/false"]}
@@ -35,10 +36,11 @@ def expertSystem():
             learnCommand()
 
         if(commandList[0] == "Query"):
+
             queryCommand(commandList[1])
 
         if(commandList[0] == "Why"):
-            whyCommand()
+            whyCommand(commandList)
 
         # print(commandList)
 
@@ -236,16 +238,12 @@ def evaluate(s):
     if s=="@":
         return True
     else:
-        if s=="#":
-            return False
-        else:
-            return facts[s]
+        return False
 
 def learnCommand():
     print("in learnCommand")
     #Testing Evaluate
     # #print(evaluate("S&V"))
-
     #print(evaluate("!V&S"))
     #print(evaluate("!V&(S|V)"))
     #print(evaluate("S|!(V|S)"))
@@ -440,9 +438,6 @@ def backwardc(v,workingmemory,f):
     return False
 
 
-
-
-
 # Query <EXP>
 def queryCommand(s):
 #    print(workingmemory)
@@ -452,14 +447,142 @@ def queryCommand(s):
     print(backevaluate(s,workingmemory,False))
 
 
+def queryCommand(commandList):
+	expression = commandList[1]
+	print(evaluate(expression))
 
-
-
+# Node class for expression tree
+class Node(object):
+	left = None
+	right = None
+	data = None
+	def __init_(self):
+		self.left = None
+		self.right = None
+		self.data = None
+	def getLeft(self):
+		return self.left
+	def getRight(self):
+		return self.right
+	def getData(self):
+		return self.data
+	def setLeft(self, left):
+		self.left = left
+	def setRight(self, right):
+		self.right = right
+	def setData(self, data):
+		self.data = data
 
 # Why <EXP>
-def whyCommand():
-    print(backevaluate(s,workingmemory,True))
-    print("in whyCommand")
+def whyCommand(commandList):
+	expression = commandList[1]
+
+	# print the truth of the expression
+	print(evaluate(expression))
+	
+	# print truth
+	root = Node()
+	createExpressionTree(expression, root)
+	# printTree(root)
+	parseExpressionTree(root)
+
+def printTree(root):
+	# leaf
+	if(root.getLeft() == None and root.getRight() == None):
+		print(root.getData())
+	# inner nodes
+	else:
+		if(root.getLeft() != None):
+			printTree(root.getLeft())
+		print(root.getData())
+		if(root.getRight() != None):
+			printTree(root.getRight())
+
+def parseExpressionTree(root):
+	# variable
+	if(root.getLeft() == None and root.getRight() == None):
+		variable = root.getData()
+		variableTruth = evaluate(variable)
+		variableValue = variableDefinitions[variable][0]
+		pdb.set_trace()
+		if(variableTruth == True):
+			print ("I KNOW THAT", variableValue)
+		else:
+			print ("I KNOW IT IS NOT TRUE THAT", variableValue)
+	# inner nodes
+	else:
+		if(root.getLeft() != None):
+			printTree(root.getLeft())
+		print(root.getData())
+		if(root.getRight() != None):
+			printTree(root.getRight())
+
+def createExpressionTree(expression, root):	
+	# print(expression)
+	
+	# recursively call createExpressionTree on inner parts of expression
+	beginParenIndex = expression.find("(")
+	endParenIndex = findclose(beginParenIndex, expression)
+
+	symbolIndex = findSymbol(expression)
+
+	# if there are () expressions
+	if( (beginParenIndex != -1) and (endParenIndex != -1) ):
+
+		# if there is a symbol separating () expressions
+		symbolIndex = findSymbol(expression)
+		if(symbolIndex != -1):
+			leftExpression = expression[:symbolIndex]
+			left = Node()
+			root.setLeft(left)
+			createExpressionTree(leftExpression, left)
+			root.setData(expression[symbolIndex])
+			rightExpression = expression[(symbolIndex+1):]
+			right = Node()
+			root.setRight(right)
+			createExpressionTree(rightExpression, right)
+
+		else:
+			newExpression = expression[(beginParenIndex+1):endParenIndex]
+			createExpressionTree(newExpression, root)
+
+	# if there is a symbol, recurse
+	elif(symbolIndex != -1):
+		leftExpression = expression[:symbolIndex]
+		left = Node()
+		root.setLeft(left)
+		createExpressionTree(leftExpression, left)
+		root.setData(expression[symbolIndex])
+		rightExpression = expression[(symbolIndex+1):]
+		right = Node()
+		root.setRight(right)
+		createExpressionTree(rightExpression, right)
+	else:
+		# base case
+		root.setData(expression)
+		return root
+
+def findSymbol(expression):
+	openParen = 0
+	index = 0
+	for char in expression:
+		if(char == ")"):
+			openParen-=1
+			index+=1
+			continue
+		if(char == "("):
+			openParen+=1
+			index+=1
+			continue
+		if(openParen > 0):
+			index+=1
+			continue
+		if(char in "!&|"):
+			return index
+		index+=1
+	return -1
+>>>>>>> work on why command
 
 if __name__ == "__main__":
     expertSystem()
+
