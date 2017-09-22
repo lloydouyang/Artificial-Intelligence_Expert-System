@@ -49,6 +49,7 @@ def teachVariableDefinition(commandList):
     value = ' '.join(commandList[4::])
     # add information to variableDefinitions
     variableDefinitions[variable] = [value, argument, "false"]
+    facts[variable]="false"
 
 # Teach <ROOT VAR> = <BOOL>
 def teachTruth(commandList):
@@ -152,7 +153,7 @@ def evaluate(s):
                 else:
                     s=s.replace(s[p:i+1],"#")
         p=s.find("!")
-    print(s)
+    #print(s)
     # get rid of &
     p=s.find("&")
     while (p!=-1):
@@ -222,24 +223,35 @@ def evaluate(s):
         else:
             s=s.replace(s[j:i+1],"#")
         p=s.find("|")
-        print(s)
+        #print(s)
     if s=="@":
         return True
     else:
         return False
 
 def learnCommand():
-
-
-
     print("in learnCommand")
-    #print(evaluate("S&V"))
+    #Testing Evaluate
+    # #print(evaluate("S&V"))
     #print(evaluate("!V&S"))
     #print(evaluate("!V&(S|V)"))
     #print(evaluate("S|!(V|S)"))
     #print(evaluate("(S|V)|!(V|S)"))
     #print(evaluate("((S|V))"))
-    print(evaluate("((S|V)|!(V|S))"))
+    #print(evaluate("((S|V)|!(V|S))"))
+    flag=True
+    while flag:
+        flag=False
+        for rule in rules:
+            p=rule.find(" ")
+            s=rule[:p]
+            var=rule[p+4:]
+            if facts[var]=="false":
+                if evaluate(s):
+                    facts[var]="true"
+                    flag=True
+
+
 
 # Query <EXP>
 def queryCommand():

@@ -4,3 +4,19 @@ Teach S -> V
 Teach S = true
 Teach V = true
 Learn
+Teach -L Eat = "Sam will eat ice cream today"
+Teach S&V -> Eat
+
+Teach -R A = “AAA”
+Teach -R B = “BBB”
+Teach -R C = “CCC”
+Teach -R D = “DDD”
+Teach -R E = “EEE”
+Teach -R F = “FFF”
+Teach A = true
+Teach B = true
+Teach C = true
+Teach E = true
+Teach A&B -> F
+Teach C|D -> F
+Teach E -> F
