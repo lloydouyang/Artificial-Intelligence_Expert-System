@@ -234,12 +234,16 @@ def evaluate(s):
     if s=="@":
         return True
     else:
-        return False
+        if s=="#":
+            return False
+        else:
+            return facts[s]
 
 def learnCommand():
     print("in learnCommand")
     #Testing Evaluate
     # #print(evaluate("S&V"))
+
     #print(evaluate("!V&S"))
     #print(evaluate("!V&(S|V)"))
     #print(evaluate("S|!(V|S)"))
@@ -266,6 +270,7 @@ def queryCommand():
 
 # Why <EXP>
 def whyCommand():
+    print(evaluate("S"))
     print("in whyCommand")
 
 if __name__ == "__main__":
