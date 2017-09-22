@@ -73,10 +73,17 @@ def teachTruth(commandList):
 # Teach <EXP> -> <VAR>
 def teachNewRule(commandList):
     # check to make sure that all variables here have already been defined via previous Teach commands
-    for letter in commandList[1]:
+    for i in range(len(commandList[1])):
         # ignore command if variables in <EXP> are not defined
-        if( (letter not in "!&|()") and letter not in variableDefinitions.keys() ):
-            return
+        if(commandList[1][i] not in "!&|()"):
+            for j in range(i,len(commandList[1]),1):
+                if(commandList[1][i] in "!&|()"):
+                    j=j-1
+                    break
+            letter=commandList[1][i:j+1]
+            if letter not in variableDefinitions.keys():
+                print("ignore")
+                return
     # ignore command if variable <VAR> is not defined
     if( commandList[3] not in variableDefinitions.keys() ):
         return
