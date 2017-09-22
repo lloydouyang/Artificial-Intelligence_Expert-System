@@ -238,7 +238,10 @@ def evaluate(s):
     if s=="@":
         return True
     else:
-        return False
+        if s=="#":
+        	return False
+        else:
+        	return facts[s]
 
 def learnCommand():
     print("in learnCommand")
@@ -504,8 +507,7 @@ def parseExpressionTree(root):
 		variable = root.getData()
 		variableTruth = evaluate(variable)
 		variableValue = variableDefinitions[variable][0]
-		pdb.set_trace()
-		if(variableTruth == True):
+		if(variableTruth == 'true'):
 			print ("I KNOW THAT", variableValue)
 		else:
 			print ("I KNOW IT IS NOT TRUE THAT", variableValue)
