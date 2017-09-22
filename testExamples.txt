@@ -20,3 +20,9 @@ Teach E = true
 Teach A&B -> F
 Teach C|D -> F
 Teach E -> F
+
+Teach -R S = “Sam likes Ice”
+Teach -R V = “Today is Sunday”
+Teach S -> V
+Teach S = true
+Query S

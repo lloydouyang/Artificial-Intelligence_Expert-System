@@ -9,6 +9,7 @@ variableDefinitions = {}
 # in the form {"variable" : "true/false"}
 facts = {}
 rules = []
+workingmemory={}
 
 def expertSystem():
 
@@ -34,7 +35,7 @@ def expertSystem():
             learnCommand()
 
         if(commandList[0] == "Query"):
-            queryCommand()
+            queryCommand(commandList[1])
 
         if(commandList[0] == "Why"):
             whyCommand()
@@ -77,12 +78,13 @@ def teachNewRule(commandList):
         # ignore command if variables in <EXP> are not defined
         if(commandList[1][i] not in "!&|()"):
             for j in range(i,len(commandList[1]),1):
-                if(commandList[1][i] in "!&|()"):
+                if(commandList[1][j] in "!&|()"):
                     j=j-1
                     break
             letter=commandList[1][i:j+1]
+            #print(letter)
             if letter not in variableDefinitions.keys():
-                print("ignore")
+                #print("ignore")
                 return
     # ignore command if variable <VAR> is not defined
     if( commandList[3] not in variableDefinitions.keys() ):
@@ -263,14 +265,200 @@ def learnCommand():
                     flag=True
 
 
+def backevaluate(s,workingmemory,f):
+
+    # get rid of ()
+    q=s.find("(")
+    qq=findclose(q,s)
+    while (q!=-1):
+        flag2= backevaluate(s[q+1:qq],workingmemory,f)
+        if flag2:
+            s=s.replace(s[q:qq+1],"@")
+
+
+        else:
+            s=s.replace(s[q:qq+1],"#")
+        q=s.find("(")
+        qq=findclose(q,s)
+
+
+    p=s.find("!")
+    while p!=-1:
+        for i in range(p+1,len(s),1):
+            if (s[i] in "!&|()"):
+                i=i-1
+                break
+        subs=s[p+1:i+1]
+        if subs=="#":
+            s=s.replace(s[p:i+1],"@")
+        else:
+            if subs=="@":
+                s=s.replace(s[p:i+1],"#")
+            else:
+                if subs in workingmemory:
+                    if workingmemory[subs]=="false":
+                        potentialChange=backwardc(subs,workingmemory,f)
+                        if potentialChange:
+                            workingmemory[subs]=True
+                            s=s.replace(s[p:i+1],"#")
+                        else:
+                            s=s.replace(s[p:i+1],"@")
+                    else:
+                        s=s.replace(s[p:i+1],"#")
+
+                else:
+                    workingmemory[subs]=backwardc(subs,workingmemory,f)
+                    if workingmemory[subs]=="false":
+                        s=s.replace(s[p:i+1],"@")
+                    else:
+                        s=s.replace(s[p:i+1],"#")
+
+
+        p=s.find("!")
+    #print(s)
+    # get rid of &
+    p=s.find("&")
+    while (p!=-1):
+
+        for i in range(p+1,len(s),1):
+            if (s[i] in "!&|()"):
+                i=i-1
+                break
+        for j in range(p-1,-1,-1):
+            if (s[j] in "!&|()"):
+                j=j+1
+                break
+        subs=s[p+1:i+1]
+        subs2=s[j:p]
+        if subs=="@":
+            a=True
+        else:
+            if subs=="#":
+                a=False
+            else:
+                if subs in workingmemory:
+                    if workingmemory[subs]:
+                        a=workingmemory[subs]
+                    else:
+                        a=backwardc(subs,workingmemory,f)
+                else:
+                    a=backwardc(subs,workingmemory,f)
+                    workingmemory[subs]=a
+        if subs2=="@":
+            b=True
+        else:
+            if subs2=="#":
+                b=False
+            else:
+                if subs2 in workingmemory:
+                    if workingmemory[subs2]:
+                        b=workingmemory[subs2]
+                    else:
+                        b=backwardc(subs2,workingmemory,f)
+                else:
+                    b=backwardc(subs2,workingmemory,f)
+                    workingmemory[subs]=b
+        if (a and b):
+            s=s.replace(s[j:i+1],"@")
+        else:
+            s=s.replace(s[j:i+1],"#")
+        p=s.find("&")
+    # get rid of |
+    p=s.find("|")
+    while (p!=-1):
+        i=p+1
+        for i in range(p+1,len(s),1):
+
+            if (s[i] in "!&|()"):
+                i=i-1
+                break
+        for j in range(p-1,-1,-1):
+            if (s[j] in "!&|()"):
+                j=j+1
+                break
+        subs=s[p+1:i+1]
+        subs2=s[j:p]
+        if subs=="@":
+            a=True
+        else:
+            if subs=="#":
+                a=False
+            else:
+                if subs in workingmemory:
+                    if workingmemory[subs]:
+                        a=workingmemory[subs]
+                    else:
+                        a=backwardc(subs,workingmemory,f)
+                else:
+                    a=backwardc(subs,workingmemory,f)
+                    workingmemory[subs]=a
+        if subs2=="@":
+            b=True
+        else:
+            if subs2=="#":
+                b=False
+            else:
+                b=workingmemory[subs2]
+                if subs2 in workingmemory:
+                    if workingmemory[subs2]:
+                        b=workingmemory[subs2]
+                    else:
+                        b=backwardc(subs2,workingmemory,f)
+                else:
+                    b=backwardc(subs2,workingmemory,f)
+                    workingmemory[subs]=b
+
+        if (a or b):
+            s=s.replace(s[j:i+1],"@")
+        else:
+            s=s.replace(s[j:i+1],"#")
+        p=s.find("|")
+        #print(s)
+    if s=="@":
+        return True
+    else:
+        if s=="#":
+            return False
+        else:
+            if s in workingmemory:
+
+                if workingmemory[s]=="true":
+                    return True
+                else:
+                    return backwardc(s,workingmemory,f)
+            else:
+
+                return backwardc(s,workingmemory,f)
+
+
+def backwardc(v,workingmemory,f):
+    for rule in rules:
+        p=rule.find(">")
+        if rule[p+2:]==v:
+            if backevaluate(rule[:p-2],workingmemory,f):
+                return True
+    return False
+
+
+
+
 
 # Query <EXP>
-def queryCommand():
-    print("in queryCommand")
+def queryCommand(s):
+#    print(workingmemory)
+
+    workingmemory=facts.copy()
+
+    print(backevaluate(s,workingmemory,False))
+
+
+
+
+
 
 # Why <EXP>
 def whyCommand():
-    print(evaluate("S"))
+    print(backevaluate(s,workingmemory,True))
     print("in whyCommand")
 
 if __name__ == "__main__":
