@@ -677,6 +677,7 @@ def createExpressionTree(expression, root):
 				root = newRoot
 			else:
 				root.setData(expression[i:])
+				break
 			i += 1
 
 # find highest ordered symbol
