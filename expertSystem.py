@@ -38,7 +38,7 @@ def expertSystem():
             queryCommand(commandList[1])
 
         if(commandList[0] == "Why"):
-            whyCommand()
+            whyCommand(commandList[1])
 
         # print(commandList)
 
@@ -183,14 +183,20 @@ def evaluate(s):
             if subs=="#":
                 a=False
             else:
-                a=facts[subs]
+                if facts[subs]=="true":
+                    a=True
+                else:
+                    a=False
         if subs2=="@":
             b=True
         else:
             if subs2=="#":
                 b=False
             else:
-                b=facts[subs2]
+                if facts[subs2]=="true":
+                    b=True
+                else:
+                    b=False
 
         if (a and b):
             s=s.replace(s[j:i+1],"@")
@@ -218,14 +224,20 @@ def evaluate(s):
             if subs=="#":
                 a=False
             else:
-                a=facts[subs]
+                if facts[subs]=="true":
+                    a=True
+                else:
+                    a=False
         if subs2=="@":
             b=True
         else:
             if subs2=="#":
                 b=False
             else:
-                b=facts[subs2]
+                if facts[subs2]=="true":
+                    b=True
+                else:
+                    b=False
 
         if (a or b):
             s=s.replace(s[j:i+1],"@")
@@ -239,10 +251,13 @@ def evaluate(s):
         if s=="#":
             return False
         else:
-            return facts[s]
+            if facts[s]=="true":
+                return True
+            else:
+                return False
 
 def learnCommand():
-    print("in learnCommand")
+
     #Testing Evaluate
     # #print(evaluate("S&V"))
 
@@ -296,18 +311,29 @@ def backevaluate(s,workingmemory,f):
                 s=s.replace(s[p:i+1],"#")
             else:
                 if subs in workingmemory:
+
                     if workingmemory[subs]=="false":
-                        potentialChange=backwardc(subs,workingmemory,f)
-                        if potentialChange:
-                            workingmemory[subs]=True
-                            s=s.replace(s[p:i+1],"#")
+                        if variableDefinitions[subs][1]=="-R":
+                            if f:
+                                print("I KNOW IT IS NOT TRUE THAT "+translate(subs))
                         else:
-                            s=s.replace(s[p:i+1],"@")
+                            potentialChange=backwardc(subs,workingmemory,f)
+                            if potentialChange:
+                                workingmemory[subs]="true"
+                                s=s.replace(s[p:i+1],"#")
+                            else:
+                                s=s.replace(s[p:i+1],"@")
                     else:
+                        if f:
+                            print("I KNOW THAT "+translate(subs))
                         s=s.replace(s[p:i+1],"#")
 
                 else:
-                    workingmemory[subs]=backwardc(subs,workingmemory,f)
+                    potentialChange=backwardc(subs,workingmemory,f)
+                    if potentialChange:
+                        workingmemory[subs]="true"
+                    else:
+                        workingmemory[subs]="false"
                     if workingmemory[subs]=="false":
                         s=s.replace(s[p:i+1],"@")
                     else:
@@ -337,13 +363,23 @@ def backevaluate(s,workingmemory,f):
                 a=False
             else:
                 if subs in workingmemory:
-                    if workingmemory[subs]:
-                        a=workingmemory[subs]
+                    if workingmemory[subs]=="true":
+                        a=True
+                        if f:
+                            print("I KNOW THAT "+translate(subs))
                     else:
-                        a=backwardc(subs,workingmemory,f)
+                        if variableDefinitions[subs][1]=="-R":
+                            if f:
+                                print("I KNOW IT IS NOT TRUE THAT "+translate(subs))
+                            a=False
+                        else:
+                            a=backwardc(subs,workingmemory,f)
                 else:
                     a=backwardc(subs,workingmemory,f)
-                    workingmemory[subs]=a
+                    if a:
+                        workingmemory[subs]="true"
+                    else:
+                        workingmemory[subs]="false"
         if subs2=="@":
             b=True
         else:
@@ -351,13 +387,24 @@ def backevaluate(s,workingmemory,f):
                 b=False
             else:
                 if subs2 in workingmemory:
-                    if workingmemory[subs2]:
+                    if workingmemory[subs2]=="true":
                         b=workingmemory[subs2]
+                        if f:
+                            print("I KNOW THAT "+translate(subs2))
                     else:
-                        b=backwardc(subs2,workingmemory,f)
+                        if variableDefinitions[subs2][1]=="-R":
+                            if f:
+                                print("I KNOW IT IS NOT TRUE THAT "+translate(subs2))
+                            b=False
+                        else:
+                            b=backwardc(subs2,workingmemory,f)
                 else:
                     b=backwardc(subs2,workingmemory,f)
-                    workingmemory[subs]=b
+                    if b:
+                        workingmemory[subs2]="true"
+                    else:
+                        workingmemory[subs2]="false"
+
         if (a and b):
             s=s.replace(s[j:i+1],"@")
         else:
@@ -385,31 +432,51 @@ def backevaluate(s,workingmemory,f):
                 a=False
             else:
                 if subs in workingmemory:
-                    if workingmemory[subs]:
-                        a=workingmemory[subs]
+                    if workingmemory[subs]=="true":
+                        a=True
+                        if f:
+                            print("I KNOW THAT "+translate(subs))
                     else:
-                        a=backwardc(subs,workingmemory,f)
+                        if variableDefinitions[subs][1]=="-R":
+                            if f:
+                                print("I KNOW IT IS NOT TRUE THAT "+translate(subs))
+                            a=False
+                        else:
+                            a=backwardc(subs,workingmemory,f)
                 else:
                     a=backwardc(subs,workingmemory,f)
-                    workingmemory[subs]=a
+                    if a:
+                        workingmemory[subs]="true"
+                    else:
+                        workingmemory[subs]="false"
         if subs2=="@":
             b=True
         else:
             if subs2=="#":
                 b=False
             else:
-                b=workingmemory[subs2]
                 if subs2 in workingmemory:
-                    if workingmemory[subs2]:
-                        b=workingmemory[subs2]
+                    if workingmemory[subs2]=="true":
+                        b=True
+                        if f:
+                            print("I KNOW THAT "+translate(subs2))
                     else:
-                        b=backwardc(subs2,workingmemory,f)
+                        if variableDefinitions[subs2][1]=="-R":
+                            if f:
+                                print("I KNOW IT IS NOT TRUE THAT "+translate(subs2))
+                            b=False
+                        else:
+                            b=backwardc(subs2,workingmemory,f)
                 else:
                     b=backwardc(subs2,workingmemory,f)
-                    workingmemory[subs]=b
+                    if b:
+                        workingmemory[subs2]="true"
+                    else:
+                        workingmemory[subs2]="false"
 
         if (a or b):
             s=s.replace(s[j:i+1],"@")
+
         else:
             s=s.replace(s[j:i+1],"#")
         p=s.find("|")
@@ -423,6 +490,8 @@ def backevaluate(s,workingmemory,f):
             if s in workingmemory:
 
                 if workingmemory[s]=="true":
+                    if f:
+                        print("I KNOW THAT "+translate(s))
                     return True
                 else:
                     return backwardc(s,workingmemory,f)
@@ -432,17 +501,28 @@ def backevaluate(s,workingmemory,f):
 
 
 def backwardc(v,workingmemory,f):
+    temp=""
     for rule in rules:
         p=rule.find(">")
         if rule[p+2:]==v:
             if backevaluate(rule[:p-2],workingmemory,f):
+                if f:
+                    print("BECAUSE IT IS TRUE THAT "+translate(rule[:p-2]), "I KNOW THAT "+translate(rule[p+2:]))
                 return True
+            else:
+                temp=rule[:p-2]
+    if f:
+        print("BECAUSE IT IS NOT TRUE THAT "+temp+" I CANNOT PROVE THAT "+translate(v))
     return False
 
+def translate(s):
 
-
-
-
+    s=s.replace("!"," NOT ")
+    s=s.replace("&"," AND ")
+    s=s.replace("|"," OR ")
+    for variable, fact in facts.items():
+        s=s.replace(variable,variableDefinitions[variable][0])
+    return s
 # Query <EXP>
 def queryCommand(s):
 #    print(workingmemory)
@@ -452,14 +532,47 @@ def queryCommand(s):
     print(backevaluate(s,workingmemory,False))
 
 
-
-
-
-
 # Why <EXP>
-def whyCommand():
-    print(backevaluate(s,workingmemory,True))
-    print("in whyCommand")
+def whyCommand(s):
+    workingmemory=facts.copy()
+    flg=backevaluate(s,workingmemory,False)
+    print(flg)
+    str=""
+    pp=""
+    for i in range(len(s)):
+        if s[i] not in "!&|()":
+            pp=pp+s[i]
+        else:
+            if pp!="":
+                if pp in workingmemory:
+                    if workingmemory[pp]=="true":
+                        print("I KNOW THAT "+translate(pp))
+                    else:
+                        if variableDefinitions[pp][1]=="-R":
+                            print("I KNOW IT IS NOT TRUE THAT "+translate(pp))
+                        else:
+                            backwardc(pp,workingmemory,True)
+                else:
+                    backwardc(pp,workingmemory,True)
+                pp=""
+    if pp!="":
+                if pp in workingmemory:
+                    if workingmemory[pp]=="true":
+                        print("I KNOW THAT "+translate(pp))
+                    else:
+                        if variableDefinitions[pp][1]=="-R":
+                            print("I KNOW IT IS NOT TRUE THAT "+translate(pp))
+                        else:
+                            backwardc(pp,workingmemory,True)
+                else:
+                    backwardc(pp,workingmemory,True)
+                pp=""
+    if flg:
+        print("THUS I KNOW THAT "+translate(s))
+    else:
+        print("THUS I CANNOT PROVE THAT "+translate(s))
+
+
 
 if __name__ == "__main__":
     expertSystem()

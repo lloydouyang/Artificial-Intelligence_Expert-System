@@ -1,11 +1,11 @@
 Teach -R S = “Sam likes Ice”
-Teach -R V = “Today is Sunday”
+Teach -L V = “Today is Sunday”
 Teach S -> V
 Teach S = true
-Teach V = true
-Learn
 Teach -L Eat = "Sam will eat ice cream today"
 Teach S&V -> Eat
+Why !(!Eat)&S|V
+Why (V&S)&V
 
 Teach -R A = “AAA”
 Teach -R B = “BBB”
