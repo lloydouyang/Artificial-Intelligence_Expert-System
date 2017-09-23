@@ -183,14 +183,20 @@ def evaluate(s):
             if subs=="#":
                 a=False
             else:
-                a=facts[subs]
+                if facts[subs]=="true":
+                    a=True
+                else:
+                    a=False
         if subs2=="@":
             b=True
         else:
             if subs2=="#":
                 b=False
             else:
-                b=facts[subs2]
+                if facts[subs2]=="true":
+                    b=True
+                else:
+                    b=False
 
         if (a and b):
             s=s.replace(s[j:i+1],"@")
@@ -218,14 +224,20 @@ def evaluate(s):
             if subs=="#":
                 a=False
             else:
-                a=facts[subs]
+                if facts[subs]=="true":
+                    a=True
+                else:
+                    a=False
         if subs2=="@":
             b=True
         else:
             if subs2=="#":
                 b=False
             else:
-                b=facts[subs2]
+                if facts[subs2]=="true":
+                    b=True
+                else:
+                    b=False
 
         if (a or b):
             s=s.replace(s[j:i+1],"@")
@@ -239,7 +251,10 @@ def evaluate(s):
         if s=="#":
         	return False
         else:
-        	return facts[s]
+            if facts[s]=="true":
+        	    return True
+            else:
+                return False
 
 def learnCommand():
     print("in learnCommand")
@@ -296,12 +311,15 @@ def backevaluate(s,workingmemory,f):
             else:
                 if subs in workingmemory:
                     if workingmemory[subs]=="false":
-                        potentialChange=backwardc(subs,workingmemory,f)
-                        if potentialChange:
-                            workingmemory[subs]=True
-                            s=s.replace(s[p:i+1],"#")
-                        else:
+                        if variableDefinitions[subs][1]=="-R":
                             s=s.replace(s[p:i+1],"@")
+                        else:
+                            potentialChange=backwardc(subs,workingmemory,f)
+                            if potentialChange:
+                                workingmemory[subs]="true"
+                                s=s.replace(s[p:i+1],"#")
+                            else:
+                                s=s.replace(s[p:i+1],"@")
                     else:
                         s=s.replace(s[p:i+1],"#")
 
@@ -336,13 +354,19 @@ def backevaluate(s,workingmemory,f):
                 a=False
             else:
                 if subs in workingmemory:
-                    if workingmemory[subs]:
-                        a=workingmemory[subs]
+                    if workingmemory[subs]=="true":
+                        a=True
                     else:
-                        a=backwardc(subs,workingmemory,f)
+                        if variableDefinitions[subs][1]=="-R":
+                            a=False
+                        else:
+                            a=backwardc(subs,workingmemory,f)
                 else:
                     a=backwardc(subs,workingmemory,f)
-                    workingmemory[subs]=a
+                    if a:
+                        workingmemory[subs]="true"
+                    else:
+                        workingmemory[subs]="false"
         if subs2=="@":
             b=True
         else:
@@ -350,13 +374,19 @@ def backevaluate(s,workingmemory,f):
                 b=False
             else:
                 if subs2 in workingmemory:
-                    if workingmemory[subs2]:
-                        b=workingmemory[subs2]
+                    if workingmemory[subs2]=="true":
+                        b=True
                     else:
-                        b=backwardc(subs2,workingmemory,f)
+                        if variableDefinitions[subs2][1]=="-R":
+                            b=False
+                        else:
+                            b=backwardc(subs2,workingmemory,f)
                 else:
                     b=backwardc(subs2,workingmemory,f)
-                    workingmemory[subs]=b
+                    if b:
+                        workingmemory[subs2]="true"
+                    else:
+                        workingmemory[subs2]="false"
         if (a and b):
             s=s.replace(s[j:i+1],"@")
         else:
@@ -384,13 +414,19 @@ def backevaluate(s,workingmemory,f):
                 a=False
             else:
                 if subs in workingmemory:
-                    if workingmemory[subs]:
-                        a=workingmemory[subs]
+                    if workingmemory[subs]=="true":
+                        a=True
                     else:
-                        a=backwardc(subs,workingmemory,f)
+                        if variableDefinitions[subs][1]=="-R":
+                            a=False
+                        else:
+                            a=backwardc(subs,workingmemory,f)
                 else:
                     a=backwardc(subs,workingmemory,f)
-                    workingmemory[subs]=a
+                    if a:
+                        workingmemory[subs]="true"
+                    else:
+                        workingmemory[subs]="false"
         if subs2=="@":
             b=True
         else:
@@ -399,13 +435,19 @@ def backevaluate(s,workingmemory,f):
             else:
                 b=workingmemory[subs2]
                 if subs2 in workingmemory:
-                    if workingmemory[subs2]:
-                        b=workingmemory[subs2]
+                    if workingmemory[subs2]=="true":
+                        b=True
                     else:
-                        b=backwardc(subs2,workingmemory,f)
+                        if variableDefinitions[subs2][1]=="-R":
+                            b=False
+                        else:
+                            b=backwardc(subs2,workingmemory,f)
                 else:
                     b=backwardc(subs2,workingmemory,f)
-                    workingmemory[subs]=b
+                    if b:
+                        workingmemory[subs2]="true"
+                    else:
+                        workingmemory[subs2]="false"
 
         if (a or b):
             s=s.replace(s[j:i+1],"@")
@@ -424,7 +466,10 @@ def backevaluate(s,workingmemory,f):
                 if workingmemory[s]=="true":
                     return True
                 else:
-                    return backwardc(s,workingmemory,f)
+                    if variableDefinitions[s][1]=="-R":
+                        return False
+                    else:
+                        return backwardc(s,workingmemory,f)
             else:
 
                 return backwardc(s,workingmemory,f)
@@ -447,10 +492,6 @@ def queryCommand(s):
 
     print(backevaluate(s,workingmemory,False))
 
-
-def queryCommand(commandList):
-	expression = commandList[1]
-	print(evaluate(expression))
 
 # Node class for expression tree
 class Node(object):
