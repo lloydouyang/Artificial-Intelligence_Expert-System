@@ -84,7 +84,7 @@ def teachNewRule(commandList):
                     break
             letter=commandList[1][i:j+1]
             i=j+1
-            print(letter)
+            # print(letter)
             if letter not in variableDefinitions.keys():
                 print("ignore")
                 return
@@ -619,12 +619,12 @@ def parseExpressionTree(root):
 		# concluding AND, OR, and NOT statements
 		symbol = root.getData()
 		finalTruth = False
-		if(symbol == '&'):
+		if(symbol == '!'):
+			finalTruth = not leftTruth
+		elif(symbol == '&'):
 			finalTruth = leftTruth and rightTruth
 		elif(symbol == '|'):
 			finalTruth = leftTruth or rightTruth
-		elif(symbol == '!'):
-			finalTruth = not leftTruth
 		else:
 			next
 		return finalTruth
@@ -658,14 +658,6 @@ def printExpression(expression):
 
 def createExpressionTree(expression, root):	
 	# print(expression)
-	
-	# check for ! before ()
-	if(expression[0] == '!'):
-		root.setData('!')
-		newRoot = Node()
-		root.setLeft(newRoot)
-		createExpressionTree(expression[1:], newRoot)
-		return
 
 	# recursively call createExpressionTree on inner parts of expression
 	beginParenIndex = expression.find("(")
@@ -692,7 +684,16 @@ def createExpressionTree(expression, root):
 			root.setRight(right)
 			createExpressionTree(rightExpression, right)
 
+		# in the form of !(<EXP>)
 		else:
+			# check for ! before ()
+			if(expression[0] == '!'):
+				root.setData('!')
+				newRoot = Node()
+				root.setLeft(newRoot)
+				createExpressionTree(expression[1:], newRoot)
+				return
+
 			newExpression = expression[(beginParenIndex+1):endParenIndex]
 			root.setParen(True)
 			createExpressionTree(newExpression, root)
