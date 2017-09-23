@@ -2,9 +2,10 @@
 # Monica Kuo (mdk6jd); De Ouyang (do5xb)
 
 import textwrap
+import pdb
 
 # create data structures
-# in the form {"variable" : ["value", "-R/-L", "true/false"]}
+# in the form {"variable" : ["value", "-R/-L"]}
 variableDefinitions = {}
 # in the form {"variable" : "true/false"}
 facts = {}
@@ -35,10 +36,11 @@ def expertSystem():
             learnCommand()
 
         if(commandList[0] == "Query"):
+
             queryCommand(commandList[1])
 
         if(commandList[0] == "Why"):
-            whyCommand()
+            whyCommand(commandList)
 
         # print(commandList)
 
@@ -49,7 +51,7 @@ def teachVariableDefinition(commandList):
     variable = commandList[2]
     value = ' '.join(commandList[4::])
     # add information to variableDefinitions
-    variableDefinitions[variable] = [value, argument, "false"]
+    variableDefinitions[variable] = [value, argument]
     facts[variable]="false"
 
 # Teach <ROOT VAR> = <BOOL>
@@ -61,11 +63,9 @@ def teachTruth(commandList):
     # this command can only be used with root variables
     if(typeOfVariable == "-R"):
         facts[variable] = truth
-        variableDefinitions[variable][2] = truth
         # reset all learned variables to the value of false
         for variable, information in variableDefinitions.items():
             if(information[1] == "-L"):
-                information[2] = "false"
                 facts[variable] = "false"
 
     else:
@@ -237,15 +237,14 @@ def evaluate(s):
         return True
     else:
         if s=="#":
-            return False
+        	return False
         else:
-            return facts[s]
+        	return facts[s]
 
 def learnCommand():
     print("in learnCommand")
     #Testing Evaluate
     # #print(evaluate("S&V"))
-
     #print(evaluate("!V&S"))
     #print(evaluate("!V&(S|V)"))
     #print(evaluate("S|!(V|S)"))
@@ -440,9 +439,6 @@ def backwardc(v,workingmemory,f):
     return False
 
 
-
-
-
 # Query <EXP>
 def queryCommand(s):
 #    print(workingmemory)
@@ -452,14 +448,256 @@ def queryCommand(s):
     print(backevaluate(s,workingmemory,False))
 
 
+def queryCommand(commandList):
+	expression = commandList[1]
+	print(evaluate(expression))
 
-
-
+# Node class for expression tree
+class Node(object):
+	left = None
+	right = None
+	data = None
+	paren = None
+	def __init_(self):
+		self.left = None
+		self.right = None
+		self.data = None
+		paren = None 
+	def getLeft(self):
+		return self.left
+	def getRight(self):
+		return self.right
+	def getData(self):
+		return self.data
+	def getParen(self):
+		return self.paren
+	def setLeft(self, left):
+		self.left = left
+	def setRight(self, right):
+		self.right = right
+	def setData(self, data):
+		self.data = data
+	def setParen(self, paren):
+		self.paren = paren
 
 # Why <EXP>
-def whyCommand():
-    print(backevaluate(s,workingmemory,True))
-    print("in whyCommand")
+def whyCommand(commandList):
+	expression = commandList[1]
+
+	# print the truth of the expression
+
+	root = Node()
+	createExpressionTree(expression, root)
+	# printTree(root)
+	# printExpression(expression)
+	finalTruth = parseExpressionTree(root)
+	
+	# print statements for conclusions 
+	if(finalTruth == True):
+		print("THUS I KNOW THAT", end=' ')
+		printExpression(expression)
+	else:
+		print("THUS I CANNOT PROVE", end=' ')
+		printExpression(expression)
+	print()
+	print(finalTruth)
+
+
+def printTree(root):
+	# leaf
+	if(root.getLeft() == None and root.getRight() == None):
+		print(root.getData())
+	# inner nodes
+	else:
+		if(root.getLeft() != None):
+			printTree(root.getLeft())
+		print(root.getData())
+		if(root.getRight() != None):
+			printTree(root.getRight())
+
+def parseExpressionTree(root):
+	# variable
+	if(root.getLeft() == None and root.getRight() == None):
+		data = root.getData()
+		# data can be variable or !variable
+		bang = False
+		var = ''
+		if(data[0] == '!'):
+			bang = True
+			var = data[1]
+		else:
+			var = data[0]
+
+		varType = variableDefinitions[var][1]
+		# if root variable, see if it's true from the facts
+		if(varType == '-R'):
+			variableTruth = facts[var]
+			variableValue = variableDefinitions[var][0]
+			if(variableTruth == 'true'):
+				print ("I KNOW THAT", variableValue)
+				if(bang):
+					print ("THUS I KNOW THAT NOT", variableValue)
+					return False
+				return True
+			else:
+				print ("I KNOW IT IS NOT TRUE THAT", variableValue)
+				if(bang):
+					return True
+				return False
+		
+		# if learned variable, find all rules that -> to learned variable and backwards chain
+		if(varType == '-L'):
+			# from the rules, make list of expressions that evaluate to variable
+			rulesWithVar = []
+			# rule format is "<EXP> -> <VAR>"
+			for rule in rules:
+				ruleList = rule.split(' ')
+				if(ruleList[2] == var):
+					rulesWithVar.append(ruleList[0])
+			# for each rule expression, evaluate truth
+			for ruleExp in rulesWithVar:
+				ruleExpRoot = Node()
+				createExpressionTree(ruleExp, ruleExpRoot)
+				ruleExpTruth = parseExpressionTree(ruleExpRoot)
+				# if any one of these rule expressions evaluates to true, break
+				if(ruleExpTruth == True):
+					print("BECAUSE", end=' ')
+					printExpression(ruleExp)
+					print("I KNOW THAT", end=' ')
+					print(variableDefinitions[var][0])
+					if(bang):
+						return False
+					return True
+				# when the rule evalues to false
+				else:
+					print("BECAUSE IT IS NOT TRUE THAT", end=' ')
+					printExpression(ruleExp)
+					print("I CANNOT PROVE", end=' ')
+					print(variableDefinitions[var][0])
+			if(bang):
+				return True
+			# the learned variable is false, return false
+			return False
+
+	# inner nodes
+	else:
+		# default True when there is no left or no right
+		leftTruth = True
+		if(root.getLeft() != None):
+			leftTruth = parseExpressionTree(root.getLeft())
+		rightTruth = True
+		if(root.getRight() != None):
+			rightTruth = parseExpressionTree(root.getRight())
+		# concluding AND, OR, and NOT statements
+		symbol = root.getData()
+		finalTruth = False
+		if(symbol == '&'):
+			finalTruth = leftTruth and rightTruth
+		elif(symbol == '|'):
+			finalTruth = leftTruth or rightTruth
+		else:
+			next
+		return finalTruth
+
+
+def printExpression(expression):
+	for char in expression:
+		if(char == '&'):
+			print("AND", end=' ')
+		elif(char == '!'):
+			print("NOT", end=' ')
+		elif(char == '|'):
+			print("OR", end=' ')
+		elif(char == '('):
+			print('(', end=' ')
+		elif(char == ')'):
+			print(')', end=' ')
+		# else it's a variable
+		else:
+			print(variableDefinitions[char][0], end=' ')
+
+def createExpressionTree(expression, root):	
+	# print(expression)
+	
+	# recursively call createExpressionTree on inner parts of expression
+	beginParenIndex = expression.find("(")
+	endParenIndex = findclose(beginParenIndex, expression)
+
+	symbolIndex = findSymbol(expression)
+
+	# if there are () expressions
+	if( (beginParenIndex != -1) and (endParenIndex != -1) ):
+
+		# if there is a symbol separating () expressions
+		symbolIndex = findSymbol(expression)
+		if(symbolIndex != -1):
+			# left
+			leftExpression = expression[:symbolIndex]
+			left = Node()
+			root.setLeft(left)
+			createExpressionTree(leftExpression, left)
+			# middle
+			root.setData(expression[symbolIndex])
+			# right
+			rightExpression = expression[(symbolIndex+1):]
+			right = Node()
+			root.setRight(right)
+			createExpressionTree(rightExpression, right)
+
+		else:
+			newExpression = expression[(beginParenIndex+1):endParenIndex]
+			root.setParen(True)
+			createExpressionTree(newExpression, root)
+
+	# if there is a symbol, recurse
+	elif(symbolIndex != -1):
+		# left
+		leftExpression = expression[:symbolIndex]
+		left = Node()
+		root.setLeft(left)
+		createExpressionTree(leftExpression, left)
+		# middle
+		root.setData(expression[symbolIndex])
+		# right
+		rightExpression = expression[(symbolIndex+1):]
+		right = Node()
+		root.setRight(right)
+		createExpressionTree(rightExpression, right)
+	else:
+		# base case - variable or !variable
+		root.setData(expression)
+		return root
+
+# find highest ordered symbol
+def findSymbol(expression):
+	openParen = 0
+	# symbolIndicies has form of (index, char)
+	symbolIndicies = []
+	index = 0
+	for char in expression:
+		if(char == ")"):
+			openParen-=1
+			index+=1
+			continue
+		if(char == "("):
+			openParen+=1
+			index+=1
+			continue
+		if(openParen > 0):
+			index+=1
+			continue
+		if(char in "&|"):
+			symbolIndicies.append( (index, char) ) 
+		index+=1
+	# no symbols
+	if(symbolIndicies==[]):
+		return -1
+	# return highest ordered symbol
+	for item in symbolIndicies:
+		if(item[1] == '&'):
+			return item[0]
+	return symbolIndicies[0][0]
 
 if __name__ == "__main__":
     expertSystem()
+
