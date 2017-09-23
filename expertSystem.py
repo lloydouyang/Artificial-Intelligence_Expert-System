@@ -518,15 +518,7 @@ def printTree(root):
 def parseExpressionTree(root):
 	# variable
 	if(root.getLeft() == None and root.getRight() == None):
-		data = root.getData()
-		# data can be variable or !variable
-		bang = False
-		var = ''
-		if(data[0] == '!'):
-			bang = True
-			var = data[1]
-		else:
-			var = data[0]
+		var = root.getData()
 
 		varType = variableDefinitions[var][1]
 		# if root variable, see if it's true from the facts
@@ -535,14 +527,9 @@ def parseExpressionTree(root):
 			variableValue = variableDefinitions[var][0]
 			if(variableTruth == 'true'):
 				print ("I KNOW THAT", variableValue)
-				if(bang):
-					print ("THUS I KNOW THAT NOT", variableValue)
-					return False
 				return True
 			else:
 				print ("I KNOW IT IS NOT TRUE THAT", variableValue)
-				if(bang):
-					return True
 				return False
 		
 		# if learned variable, find all rules that -> to learned variable and backwards chain
@@ -565,8 +552,6 @@ def parseExpressionTree(root):
 					printExpression(ruleExp)
 					print("I KNOW THAT", end=' ')
 					print(variableDefinitions[var][0])
-					if(bang):
-						return False
 					return True
 				# when the rule evalues to false
 				else:
@@ -574,8 +559,6 @@ def parseExpressionTree(root):
 					printExpression(ruleExp)
 					print("I CANNOT PROVE", end=' ')
 					print(variableDefinitions[var][0])
-			if(bang):
-				return True
 			# the learned variable is false, return false
 			return False
 
@@ -595,13 +578,22 @@ def parseExpressionTree(root):
 			finalTruth = leftTruth and rightTruth
 		elif(symbol == '|'):
 			finalTruth = leftTruth or rightTruth
+		elif(symbol == '!'):
+			finalTruth = not leftTruth
 		else:
 			next
 		return finalTruth
 
 
 def printExpression(expression):
+	runningVar = False
+	var = ''
 	for char in expression:
+		if(char in '&!|()' and runningVar):
+			print(variableDefinitions[var][0], end=' ')
+			runningVar = False
+			var = ''
+
 		if(char == '&'):
 			print("AND", end=' ')
 		elif(char == '!'):
@@ -614,11 +606,22 @@ def printExpression(expression):
 			print(')', end=' ')
 		# else it's a variable
 		else:
-			print(variableDefinitions[char][0], end=' ')
+			var += char
+			runningVar = True
+	if(var != ''):
+		print(variableDefinitions[var][0], end=' ')
 
 def createExpressionTree(expression, root):	
 	# print(expression)
 	
+	# check for ! before ()
+	if(expression[0] == '!'):
+		root.setData('!')
+		newRoot = Node()
+		root.setLeft(newRoot)
+		createExpressionTree(expression[1:], newRoot)
+		return
+
 	# recursively call createExpressionTree on inner parts of expression
 	beginParenIndex = expression.find("(")
 	endParenIndex = findclose(beginParenIndex, expression)
@@ -664,9 +667,17 @@ def createExpressionTree(expression, root):
 		root.setRight(right)
 		createExpressionTree(rightExpression, right)
 	else:
-		# base case - variable or !variable
-		root.setData(expression)
-		return root
+		# base case - variable or !variable (any amount of !)
+		i = 0
+		for char in expression:
+			if(char == '!'):
+				root.setData('!')
+				newRoot = Node()
+				root.setLeft(newRoot)
+				root = newRoot
+			else:
+				root.setData(expression[i:])
+			i += 1
 
 # find highest ordered symbol
 def findSymbol(expression):
